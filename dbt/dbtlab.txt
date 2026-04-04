@@ -1,0 +1,64 @@
+-- ==========================================
+-- 1. DATABASE SCHEMA SETUP
+-- ==========================================
+
+-- Create Parent Table
+CREATE TABLE departments (
+    dept_id INT AUTO_INCREMENT PRIMARY KEY,
+    dept_name VARCHAR(50) NOT NULL UNIQUE,
+    location VARCHAR(100) DEFAULT 'Remote'
+);
+
+-- Create Child Table with Foreign Key & Constraints
+CREATE TABLE employees (
+    emp_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE,
+    salary DECIMAL(10, 2) CHECK (salary > 0),
+    hire_date DATE DEFAULT (CURRENT_DATE),
+    dept_id INT,
+    -- Foreign Key Definition
+    CONSTRAINT fk_dept 
+        FOREIGN KEY (dept_id) 
+        REFERENCES departments(dept_id)
+        ON DELETE SET NULL 
+        ON UPDATE CASCADE
+);
+
+-- ==========================================
+-- 2. DATA INSERTION (ALL TYPES)
+-- ==========================================
+
+-- A. Multi-row Insert for Parent Table
+INSERT INTO departments (dept_name, location) 
+VALUES 
+    ('Engineering', 'San Francisco'),
+    ('Marketing', 'New York'),
+    ('Human Resources', 'Chicago');
+
+-- B. Standard Insert for Child Table (Manual FK)
+INSERT INTO employees (first_name, last_name, email, salary, dept_id)
+VALUES ('Jane', 'Doe', 'jane.doe@company.com', 95000.00, 1);
+
+-- C. Positional Insert (Matching exact table structure)
+INSERT INTO employees 
+VALUES (DEFAULT, 'John', 'Smith', 'john.s@company.com', 82000.50, '2024-05-20', 2);
+
+-- D. Subquery Insert (Dynamic FK Lookup)
+-- Use this when you know the name of the dept but not the ID number
+INSERT INTO employees (first_name, last_name, email, salary, dept_id)
+VALUES (
+    'Alice', 
+    'Johnson', 
+    'alice.j@company.com', 
+    110000.00, 
+    (SELECT dept_id FROM departments WHERE dept_name = 'Engineering')
+);
+
+-- ==========================================
+-- 3. VERIFICATION
+-- ==========================================
+SELECT e.first_name, e.last_name, d.dept_name, e.salary
+FROM employees e
+JOIN departments d ON e.dept_id = d.dept_id;
